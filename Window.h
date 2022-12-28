@@ -3,30 +3,31 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 struct WindowDimensions {
-    int width;
-    int height;
+  int width;
+  int height;
 };
 
 namespace gps {
 
-    class Window {
+class Window {
+ public:
+  void Create(int width = 800,
+              int height = 600,
+              const char* title = "OpenGL Project");
+  void Delete();
 
-    public:
-        void Create(int width=800, int height=600, const char *title="OpenGL Project");
-        void Delete();
+  GLFWwindow* getWindow();
+  WindowDimensions getWindowDimensions();
+  void setWindowDimensions(WindowDimensions dimensions);
 
-        GLFWwindow* getWindow();
-        WindowDimensions getWindowDimensions();
-        void setWindowDimensions(WindowDimensions dimensions);
+ private:
+  WindowDimensions dimensions;
+  GLFWwindow* window;
+};
+}  // namespace gps
 
-    private:
-        WindowDimensions dimensions;
-        GLFWwindow *window;
-    };
-}
-
-#endif //WINDOW_H
+#endif  // WINDOW_H
