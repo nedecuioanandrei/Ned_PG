@@ -14,6 +14,24 @@
 
 #include <iostream>
 
+
+void _update_fps_counter( GLFWwindow* window ) {                                
+    static double previous_seconds = glfwGetTime();                               
+    static int frame_count;                                                       
+    double current_seconds = glfwGetTime();                                       
+    double elapsed_seconds = current_seconds - previous_seconds;                  
+    if ( elapsed_seconds > 0.25 ) {                                               
+    previous_seconds = current_seconds;                                         
+    double fps       = (double)frame_count / elapsed_seconds;                   
+    char tmp[128];                                                              
+    sprintf( tmp, "opengl @ fps: %.2f", fps );                                  
+    glfwSetWindowTitle( window, tmp );                                          
+        frame_count = 0;                                                            
+    }                                                                             
+    frame_count++;                                                                
+}        
+
+
 // window
 gps::Window myWindow;
 
@@ -185,6 +203,28 @@ void processMovement() {
     normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
   }
 
+  if (pressedKeys[GLFW_KEY_L]) {
+    myCamera.move(gps::MOVE_UP, cameraSpeed);
+    // update view matrix
+    view = myCamera.getViewMatrix();
+    myBasicShader.useShaderProgram();
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    // compute normal matrix for teapot
+    normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
+  }
+
+
+  if (pressedKeys[GLFW_KEY_K]) {
+    myCamera.move(gps::MOVE_DOWN, cameraSpeed);
+    // update view matrix
+    view = myCamera.getViewMatrix();
+    myBasicShader.useShaderProgram();
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    // compute normal matrix for teapot
+    normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
+  }
+
+
   if (pressedKeys[GLFW_KEY_Q]) {
     angle -= 1.0f;
     // update model matrix for teapot
@@ -202,6 +242,10 @@ void processMovement() {
     // update normal matrix for teapot
     normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
   }
+
+  double xpos, ypos;
+  glfwGetCursorPos(myWindow.getWindow(), &xpos, &ypos);
+  myCamera.rotate(xpos, ypos);
 }
 
 void initOpenGLWindow() {
@@ -224,10 +268,12 @@ void initOpenGLState() {
   glEnable(GL_CULL_FACE);  // cull face
   glCullFace(GL_BACK);     // cull back face
   glFrontFace(GL_CCW);     // GL_CCW for counter clock-wise
+  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void initModels() {
-  teapot.LoadModel("models/teapot/teapot20segUT.obj");
+  teapot.LoadModel("models/casa/MT_PM_V060_Blender_CyclesEevee/gud_terrain.obj");
 }
 
 void initShaders() {
@@ -329,7 +375,7 @@ int main(int argc, const char* argv[]) {
 
     glfwPollEvents();
     glfwSwapBuffers(myWindow.getWindow());
-
+    _update_fps_counter(myWindow.getWindow());
     glCheckError();
   }
 
