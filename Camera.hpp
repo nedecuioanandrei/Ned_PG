@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
+#include <iostream>
 
 #include <string>
 
@@ -30,6 +31,11 @@ namespace gps {
         glm::vec3 cameraFrontDirection;
         glm::vec3 cameraRightDirection;
         glm::vec3 cameraUpDirection;
+    
+        glm::vec3 getRight() {
+            return glm::cross(this -> cameraUpDirection, this -> cameraTarget);
+        }
+
     };
     
 }

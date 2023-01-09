@@ -40,7 +40,7 @@ gps::Camera myCamera(glm::vec3(0.0f, 0.0f, 3.0f),
                      glm::vec3(0.0f, 0.0f, -10.0f),
                      glm::vec3(0.0f, 1.0f, 0.0f));
 
-GLfloat cameraSpeed = 0.1f;
+GLfloat cameraSpeed = 0.01f;
 
 GLboolean pressedKeys[1024];
 
@@ -110,6 +110,38 @@ void keyboardCallback(GLFWwindow* window,
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
   // TODO
+    static bool first_mouse = true;
+    static double last_x, last_y;
+    static double yaw = -90.0f;
+    static double pitch = 0.0f;
+    
+    if (first_mouse) {
+        last_x = xpos;
+        last_y = ypos;
+        first_mouse = false;
+    }
+    
+    float x_offset = xpos - last_x;
+    float y_offset = -ypos + last_y;
+
+    // x_offset *= cameraSpeed;
+    // y_offset *= cameraSpeed;
+
+    yaw += x_offset;
+    pitch += y_offset;
+
+    if (pitch > 89.0f) {
+        pitch = 89.0f;
+    }
+
+    if (pitch < -89.0f) {
+        pitch = -89.0f;
+    }
+
+    myCamera.rotate(pitch, yaw);
+//    std::cout << x_offset << " " << y_offset << std::endl;
+//    std::cout << xpos << " " << ypos << std::endl;
+//    std::cout << yaw << " " << pitch << std::endl;
 }
 
 void processMovement() {
