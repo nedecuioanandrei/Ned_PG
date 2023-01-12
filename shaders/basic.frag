@@ -55,5 +55,9 @@ void main()
     //compute final vertex color
     vec3 color = min((ambient + diffuse) * texture(diffuseTexture, fTexCoords).rgb + specular * texture(specularTexture, fTexCoords).rgb, 1.0f);
 
+
+    //float depth = logisticDepth((gl_FragCoord.z);
+
+    //fColor = vec4(depth * vec3(0.85f, 0.85f, 0.90f), 1.0f);
     fColor = vec4(color, 1.0f);
 }

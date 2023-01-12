@@ -10,27 +10,26 @@
 #include "Camera.hpp"
 #include "Model3D.hpp"
 #include "Shader.hpp"
+#include "SkyBox.hpp"
 #include "Window.h"
 
 #include <iostream>
 
-
-void _update_fps_counter( GLFWwindow* window ) {                                
-    static double previous_seconds = glfwGetTime();                               
-    static int frame_count;                                                       
-    double current_seconds = glfwGetTime();                                       
-    double elapsed_seconds = current_seconds - previous_seconds;                  
-    if ( elapsed_seconds > 0.25 ) {                                               
-    previous_seconds = current_seconds;                                         
-    double fps       = (double)frame_count / elapsed_seconds;                   
-    char tmp[128];                                                              
-    sprintf( tmp, "opengl @ fps: %.2f", fps );                                  
-    glfwSetWindowTitle( window, tmp );                                          
-        frame_count = 0;                                                            
-    }                                                                             
-    frame_count++;                                                                
-}        
-
+void _update_fps_counter(GLFWwindow* window) {
+  static double previous_seconds = glfwGetTime();
+  static int frame_count;
+  double current_seconds = glfwGetTime();
+  double elapsed_seconds = current_seconds - previous_seconds;
+  if (elapsed_seconds > 0.25) {
+    previous_seconds = current_seconds;
+    double fps = (double)frame_count / elapsed_seconds;
+    char tmp[128];
+    sprintf(tmp, "opengl @ fps: %.2f", fps);
+    glfwSetWindowTitle(window, tmp);
+    frame_count = 0;
+  }
+  frame_count++;
+}
 
 // window
 gps::Window myWindow;
@@ -53,8 +52,12 @@ GLuint normalMatrixLoc;
 GLuint lightDirLoc;
 GLuint lightColorLoc;
 
+// skybox
+gps::SkyBox mySkyBox;
+gps::Shader skyboxShader;
+
 // camera
-gps::Camera myCamera(glm::vec3(0.0f, 0.0f, 3.0f),
+gps::Camera myCamera(glm::vec3(0.0f, 0.0f, 14.0f),
                      glm::vec3(0.0f, 0.0f, -10.0f),
                      glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -128,38 +131,38 @@ void keyboardCallback(GLFWwindow* window,
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
   // TODO
-    static bool first_mouse = true;
-    static double last_x, last_y;
-    static double yaw = -90.0f;
-    static double pitch = 0.0f;
-    
-    if (first_mouse) {
-        last_x = xpos;
-        last_y = ypos;
-        first_mouse = false;
-    }
-    
-    float x_offset = xpos - last_x;
-    float y_offset = -ypos + last_y;
+  static bool first_mouse = true;
+  static double last_x, last_y;
+  static double yaw = -90.0f;
+  static double pitch = 0.0f;
 
-    // x_offset *= cameraSpeed;
-    // y_offset *= cameraSpeed;
+  if (first_mouse) {
+    last_x = xpos;
+    last_y = ypos;
+    first_mouse = false;
+  }
 
-    yaw += x_offset;
-    pitch += y_offset;
+  float x_offset = xpos - last_x;
+  float y_offset = -ypos + last_y;
 
-    if (pitch > 89.0f) {
-        pitch = 89.0f;
-    }
+  // x_offset *= cameraSpeed;
+  // y_offset *= cameraSpeed;
 
-    if (pitch < -89.0f) {
-        pitch = -89.0f;
-    }
+  yaw += x_offset;
+  pitch += y_offset;
 
-    myCamera.rotate(pitch, yaw);
-//    std::cout << x_offset << " " << y_offset << std::endl;
-//    std::cout << xpos << " " << ypos << std::endl;
-//    std::cout << yaw << " " << pitch << std::endl;
+  if (pitch > 89.0f) {
+    pitch = 89.0f;
+  }
+
+  if (pitch < -89.0f) {
+    pitch = -89.0f;
+  }
+
+  myCamera.rotate(pitch, yaw);
+  //    std::cout << x_offset << " " << y_offset << std::endl;
+  //    std::cout << xpos << " " << ypos << std::endl;
+  //    std::cout << yaw << " " << pitch << std::endl;
 }
 
 void processMovement() {
@@ -213,7 +216,6 @@ void processMovement() {
     normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
   }
 
-
   if (pressedKeys[GLFW_KEY_K]) {
     myCamera.move(gps::MOVE_DOWN, cameraSpeed);
     // update view matrix
@@ -223,7 +225,6 @@ void processMovement() {
     // compute normal matrix for teapot
     normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
   }
-
 
   if (pressedKeys[GLFW_KEY_Q]) {
     angle -= 1.0f;
@@ -241,6 +242,16 @@ void processMovement() {
         glm::rotate(glm::mat4(1.0f), glm::radians(angle), glm::vec3(0, 1, 0));
     // update normal matrix for teapot
     normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
+  }
+
+  if (pressedKeys[GLFW_KEY_PAGE_UP]) {
+    printf("sus");
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
+
+  if (pressedKeys[GLFW_KEY_PAGE_DOWN]) {
+    printf("jos");
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   }
 
   double xpos, ypos;
@@ -268,12 +279,42 @@ void initOpenGLState() {
   glEnable(GL_CULL_FACE);  // cull face
   glCullFace(GL_BACK);     // cull back face
   glFrontFace(GL_CCW);     // GL_CCW for counter clock-wise
-  //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void init_skybox() {
+  std::vector<const GLchar*> faces;
+  faces.push_back("textures/skybox/right.tga");
+  faces.push_back("textures/skybox/left.tga");
+  faces.push_back("textures/skybox/top.tga");
+  faces.push_back("textures/skybox/bottom.tga");
+  faces.push_back("textures/skybox/back.tga");
+  faces.push_back("textures/skybox/front.tga");
+  mySkyBox.Load(faces);
+  skyboxShader.loadShader("shaders/skyboxShader.vert",
+                          "shaders/skyboxShader.frag");
+}
+
+void draw_skybox() {
+  skyboxShader.useShaderProgram();
+  view = myCamera.getViewMatrix();
+  glUniformMatrix4fv(glGetUniformLocation(skyboxShader.shaderProgram, "view"),
+                     1, GL_FALSE, glm::value_ptr(view));
+
+  projection =
+      glm::perspective(glm::radians(45.0f),
+                       (float)myWindow.getWindowDimensions().width /
+                           (float)myWindow.getWindowDimensions().height,
+                       0.1f, 1000.0f);
+  glUniformMatrix4fv(
+      glGetUniformLocation(skyboxShader.shaderProgram, "projection"), 1,
+      GL_FALSE, glm::value_ptr(projection));
+  mySkyBox.Draw(skyboxShader, view, projection);
 }
 
 void initModels() {
-  teapot.LoadModel("models/casa/MT_PM_V060_Blender_CyclesEevee/gud_terrain.obj");
+  teapot.LoadModel("models/testing/casa.obj");
 }
 
 void initShaders() {
@@ -368,10 +409,12 @@ int main(int argc, const char* argv[]) {
   setWindowCallbacks();
 
   glCheckError();
+  init_skybox();
   // application loop
   while (!glfwWindowShouldClose(myWindow.getWindow())) {
     processMovement();
     renderScene();
+    draw_skybox();
 
     glfwPollEvents();
     glfwSwapBuffers(myWindow.getWindow());
