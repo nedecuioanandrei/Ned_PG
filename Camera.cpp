@@ -9,123 +9,109 @@ void debug_vector(glm::vec3& a) {
 }
 
 // Camera constructor
-Camera::Camera(glm::vec3 cameraPosition,
-               glm::vec3 cameraTarget,
-               glm::vec3 cameraUp) {
-  this->cameraPosition = cameraPosition;
-  this->cameraTarget = cameraTarget;
-  this->cameraUpDirection = cameraUp;
-  this->cameraFrontDirection = glm::vec3(0, 0, -1.0f);
+Camera::Camera(glm::vec3 position,
+               glm::vec3 front,
+               glm::vec3 up,
+               glm::vec3 right,
+               glm::vec3 worldUp,
+               float yaw,
+               float pitch,
+               float movementSpeed,
+               float mouseSensitivity,
+               float zoom) {
+  Position = position;
+  Front = front, Up = up, Right = right, WorldUp = worldUp;
+  this->yaw = yaw;
+  this->pitch = pitch;
+  this->movementSpeed = movementSpeed;
+  this->mouseSensitivity = mouseSensitivity;
+  this->zoom = zoom;
+  updateCameraVectors();
 }
 
-// return the view matrix, using the glm::lookAt() function
+// // return the view matrix, using the glm::lookAt() function
 glm::mat4 Camera::getViewMatrix() {
-  return glm::lookAt(cameraPosition, cameraTarget + cameraFrontDirection,
-                     cameraUpDirection);
-}
-
-glm::vec3 Camera::getPosition() {
-  return cameraPosition;
-}
-
-glm::vec3 Camera::getTarget() {
-  return cameraTarget;
-}
-
-glm::vec3 Camera::getUp() {
-  return cameraUpDirection;
+  return glm::lookAt(Position, Position + Front, Up);
 }
 
 // update the camera internal parameters following a camera move event
-void Camera::move(MOVE_DIRECTION direction, float speed) {
+void Camera::move(MOVE_DIRECTION direction, float deltaTime) {
+  float velo = movementSpeed / 100;
+  debug_vector(Position);
+  debug_vector(Front);
+  debug_vector(Up);
+  debug_vector(Right);
+  debug_vector(WorldUp);
+  printf("movement speed %f", movementSpeed);
+
   // TODO
   switch (direction) {
     case MOVE_FORWARD:
       // this -> cameraPosition += speed * this -> cameraFrontDirection;
       // this -> cameraTarget += speed * this -> cameraFrontDirection;
-      cameraPosition += speed * cameraTarget;
+      // printf("velo: %f, mov : %f, deltaTime: %f \n", velo, deltaTime,
+      // movementSpeed);
+      Position += Front * velo;
       break;
     case MOVE_BACKWARD:
       // this -> cameraPosition -= speed * this -> cameraFrontDirection;
       // this -> cameraTarget -= speed * this -> cameraFrontDirection;
-      cameraPosition -= speed * cameraTarget;
+      Position -= Front * velo;
       break;
     case MOVE_RIGHT:
       // this -> cameraPosition += speed * this -> getRight();
       // this -> cameraTarget += speed * this -> getRight();
-      cameraPosition +=
-          speed * glm::normalize(glm::cross(cameraTarget, cameraUpDirection));
+      Position += Right * velo;
       break;
     case MOVE_LEFT:
       // this -> cameraPosition -= speed * this -> getRight();
       // this -> cameraTarget -= speed * this -> getRight();
-      cameraPosition -=
-          speed * glm::normalize(glm::cross(cameraTarget, cameraUpDirection));
+      Position -= Right * velo;
       break;
     case MOVE_UP:
       // this -> cameraPosition += speed * this -> cameraUpDirection;
       // this -> cameraTarget += speed * this -> cameraUpDirection;
-      cameraPosition.y += speed;
-      cameraTarget.y += speed;
       break;
     case MOVE_DOWN:
       // this -> cameraPosition -= speed * this -> cameraUpDirection;
       // this -> cameraTarget -= speed * this -> cameraUpDirection;
-      cameraPosition.y -= speed;
-      cameraTarget.y -= speed;
       break;
     default:
       break;
   }
 }
 
-float yaw;
-float pitch;
-bool first = true;
-float lastX, lastY;
-
-// update the camera internal parameters following a camera rotate event
-// yaw - camera rotation around the y axis
-// pitch - camera rotation around the x axis
-void Camera::rotate(float xpos, float ypos) {
-  return;
-  if (first) {
-    lastX = xpos;
-    lastY = ypos;
-    first = false;
-  }
-
-  float xoffset = xpos - lastX;
-  float yoffset = lastY - ypos;
-  lastX = xpos;
-  lastY = ypos;
-
-  float sensitivity = 0.2f;
-  xoffset *= sensitivity;
-  yoffset *= sensitivity;
+void Camera::ProcessMouseMovement(float xoffset,
+                                  float yoffset,
+                                  bool constrainPitch = true) {
+  xoffset *= mouseSensitivity;
+  yoffset *= mouseSensitivity;
 
   yaw += xoffset;
   pitch += yoffset;
 
-  printf("pitch: %f, yaw: %f\n", pitch, yaw);
+  printf("pitch: %f\n", yoffset);
+  printf("yaw: %f\n", yaw);
+  // make sure that when pitch is out of bounds, screen doesn't get flipped
+  if (constrainPitch) {
+    if (pitch > 89.0f)
+      pitch = 89.0f;
+    if (pitch < -89.0f)
+      pitch = -89.0f;
+  }
 
-  if (pitch > 89.0f)
-    pitch = 89.0f;
-  if (pitch < -89.0f)
-    pitch = -89.0f;
-
-  glm::vec3 front, right, up;
-
-  front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  front.y = sin(glm::radians(pitch));
-  front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-  right.x = -cos(yaw);
-  right.y = 0.0;
-  right.z = sin(yaw);
-
-  up = glm::cross(front, right);
-  cameraTarget = glm::normalize(front);
-  cameraUpDirection = glm::normalize(up);
+  // update Front, Right and Up Vectors using the updated Euler angles
+  updateCameraVectors();
 }
+
+void Camera::ProcessMouseScroll(float yoffset) {
+  zoom -= (float)yoffset;
+  if (zoom < 1.0f)
+    zoom = 1.0f;
+  if (zoom > 45.0f)
+    zoom = 45.0f;
+}
+// update the camera internal parameters following a camera rotate event
+// yaw - camera rotation around the y axis
+// pitch - camera rotation around the x axis
 }  // namespace gps

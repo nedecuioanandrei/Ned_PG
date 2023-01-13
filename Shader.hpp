@@ -8,6 +8,9 @@
 #include <sstream>
 #include <iostream>
 #include <string>
+#include "format.h"
+
+#include "PointLight.hpp"
 
 namespace gps {
 
@@ -17,9 +20,9 @@ public:
     GLuint shaderProgram;
     void loadShader(std::string vertexShaderFileName, std::string fragmentShaderFileName);
     void useShaderProgram();
-
+    void setPointLight(int index, PointLight pl);
 private:
-    std::string readShaderFile(std::string fileName);
+    std::string readShaderFile( std::string fileName);
     void shaderCompileLog(GLuint shaderId);
     void shaderLinkLog(GLuint shaderProgramId);
 };

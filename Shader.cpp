@@ -82,4 +82,35 @@ void Shader::useShaderProgram() {
   glUseProgram(this->shaderProgram);
 }
 
+void Shader::setPointLight(int index, PointLight pl) {
+  uint32_t plsPosition = glGetUniformLocation(
+      this->shaderProgram, fmt::format("pls[{}].position", index).c_str());
+  glUniform3f(plsPosition, pl.position.x, pl.position.y, pl.position.z);
+
+  uint32_t plsConstant = glGetUniformLocation(
+      shaderProgram, fmt::format("pls[{}].constant", index).c_str());
+  glUniform1f(plsConstant, pl.constant);
+
+  uint32_t plsLinear = glGetUniformLocation(
+      this->shaderProgram, fmt::format("pls[{}].linear", index).c_str());
+  glUniform1f(plsLinear, pl.linear);
+
+  uint32_t plsQuadratic = glGetUniformLocation(
+      this->shaderProgram, fmt::format("pls[{}].quadratic", index).c_str());
+  glUniform1f(plsQuadratic, pl.quadratic);
+
+  uint32_t plsAmbient = glGetUniformLocation(
+      this->shaderProgram, fmt::format("pls[{}].ambient", index).c_str());
+  glUniform3f(plsAmbient, pl.ambient.x, pl.ambient.y, pl.ambient.z);
+
+  uint32_t plsDiffuse = glGetUniformLocation(
+      this->shaderProgram, fmt::format("pls[{}].diffuse", index).c_str());
+  glUniform3f(plsDiffuse, pl.diffuse.x, pl.diffuse.y, pl.diffuse.z);
+
+  uint32_t plsSpecular = glGetUniformLocation(
+      this->shaderProgram, fmt::format("pls[{}].specular", index).c_str());
+  glUniform3f(plsSpecular, pl.specular.x, pl.specular.y, pl.specular.z);
+  printf("Da");
+}
+
 }  // namespace gps
