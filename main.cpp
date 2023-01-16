@@ -409,15 +409,14 @@ void processMovement() {
   }
 
   myCamera.ProcessMouseMovement(
-      gxpos - myWindow.getWindowDimensions().width / 2 ,
+      gxpos - myWindow.getWindowDimensions().width / 2,
       -gypos + myWindow.getWindowDimensions().height / 2);
-  
-    view = myCamera.getViewMatrix();
-    myBasicShader.useShaderProgram();
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    // compute normal matrix for teapot
-    normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
 
+  view = myCamera.getViewMatrix();
+  myBasicShader.useShaderProgram();
+  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+  // compute normal matrix for teapot
+  normalMatrix = glm::mat3(glm::inverseTranspose(view * model));
 }
 
 int main(int argc, const char* argv[]) {
@@ -439,10 +438,8 @@ int main(int argc, const char* argv[]) {
 
   while (!glfwWindowShouldClose(myWindow.getWindow())) {
     glfwPollEvents();
-
     processMovement();
     renderScene();
-
     glfwSwapBuffers(myWindow.getWindow());
     _update_fps_counter(myWindow.getWindow());
   }

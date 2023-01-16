@@ -5,6 +5,7 @@ INC = -I ./common/include
 LOC_LIB = ./common/linux_x86_64/libGLEW.a -lglfw ./common/linux_x86_64/libassimp.a
 SYS_LIB = -lfmt -lGL -lz 
 SRC = main.cpp format.h PointLight.cpp PointLight.hpp Camera.cpp Camera.hpp Mesh.cpp Mesh.hpp Model3D.cpp Model3D.hpp Shader.cpp Shader.hpp stb_image.cpp stb_image.h tiny_obj_loader.cpp tiny_obj_loader.h Window.cpp Window.h SkyBox.hpp SkyBox.cpp
+
 all:
 	${CC} ${FLAGS} -o ${BIN} ${SRC} ${INC} ${LOC_LIB} ${SYS_LIB}
 
